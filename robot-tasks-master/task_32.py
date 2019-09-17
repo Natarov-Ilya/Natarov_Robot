@@ -19,7 +19,7 @@ def task_8_18():
         else:
             fill_cell()
         move_right()
-    mov(ax, x)
+    mov('ax', x)
 
 
 if __name__ == '__main__':
