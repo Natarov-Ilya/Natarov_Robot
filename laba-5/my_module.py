@@ -1,4 +1,5 @@
 from random import randrange as rnd, choice
+import random
 import tkinter as tk
 import math
 import time
@@ -64,10 +65,10 @@ class Ball():
 			self.vx = -self.vx
 		if (self.y < 0):
 			self.vy = -self.vy
-		if (self.y > 600 - self.r):
+		if (self.y > 600 - self.r - 30):
 			self.vx = 0
 			self.vy = 0
-			self.y = 600 - self.r
+			self.y = 600 - self.r - 30
 		if (self.y < 600 - self.r):
 			self.vy -= 2
 		self.x += self.vx
@@ -118,7 +119,7 @@ class Gun():
 		Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
 		"""
 		global balls, bullet
-		bullet += 1
+		bullet = bullet + 1
 		new_ball = Ball(self.canv)
 		new_ball.r += 5
 		self.angle = math.atan((event.y-new_ball.y) / (event.x-new_ball.x))
@@ -132,10 +133,6 @@ class Gun():
 		"""Прицеливание. Зависит от положения мыши."""
 		if event:
 			self.angle = math.atan((event.y-450) / (event.x-20))
-		if self.flag:
-			self.canv.itemconfig(self.id, fill='orange')
-		else:
-			self.canv.itemconfig(self.id, fill='black')
 		self.canv.coords(self.id, 20, 450,
 					20 + max(self.power, 20) * math.cos(self.angle),
 					450 + max(self.power, 20) * math.sin(self.angle)
@@ -143,7 +140,7 @@ class Gun():
 
 	def power_up(self):
 		if self.flag:
-			if self.power < 100:
+			if self.power < 50:
 				self.power += 1
 			self.canv.itemconfig(self.id, fill='orange')
 		else:
@@ -164,23 +161,49 @@ class Target():
 	"""
 	def __init__(self, canv):
 		self.canv = canv
-		self.points = 0
 		self.live = 1
 		self.id = self.canv.create_oval(0,0,0,0)
-		self.id_points = self.canv.create_text(30,30,text = self.points,font = '28')
 		self.new_target()
 
 	def new_target(self):
 		""" Инициализация новой цели. """
-		x = self.x = rnd(600, 780)
-		y = self.y = rnd(300, 550)
-		r = self.r = rnd(2, 50)
-		color = self.color = 'red'
+		x = self.x = rnd(560, 740)
+		y = self.y = rnd(60, 540)
+		r = self.r = rnd(10, 50)
+		angle = math.pi * random.random() * 2
+		self.vx = 6 * math.cos(angle)
+		self.vy = 6 * math.sin(angle)
+		color = self.color = choice(['blue', 'green', 'red', 'brown'])
 		self.canv.coords(self.id, x-r, y-r, x+r, y+r)
 		self.canv.itemconfig(self.id, fill=color)
 
 	def hit(self, points=1):
 		"""Попадание шарика в цель."""
 		self.canv.coords(self.id, -10, -10, -10, -10)
-		self.points += points
-		self.canv.itemconfig(self.id_points, text=self.points)
+
+	def set_coords(self):
+		self.canv.coords(
+				self.id,
+				self.x - self.r,
+				self.y - self.r,
+				self.x + self.r,
+				self.y + self.r
+		)
+
+	def move(self):
+		"""Переместить цель по прошествии единицы времени.
+
+		Метод описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения
+		self.x и self.y с учетом скоростей self.vx и self.vy.
+		"""
+		if (self.x < 560):
+			self.vx = -self.vx
+		if (self.x > 740):
+			self.vx = -self.vx
+		if (self.y < 60):
+			self.vy = -self.vy
+		if (self.y > 540):
+			self.vy = -self.vy
+		self.x += self.vx
+		self.y -= self.vy
+		self.set_coords()
